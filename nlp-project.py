@@ -1,16 +1,19 @@
+# Basic libraries needed
 import re
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 from google.colab import drive
 
-
+# Import SpaCy
 import spacy
 from spacy import displacy
 
+# Import libraries needed for summarization
 from string import punctuation
 from heapq import nlargest
 
+# Import NLTK
 import nltk
 
 nltk.download('stopwords')
@@ -26,21 +29,19 @@ from nltk.stem.wordnet import WordNetLemmatizer
 from collections import Counter
 
 
+## PREPROCESSING ##
 
-
+# Load and drop unnecessary rows
 df = pd.read_csv('dont_say_gay.csv')
-
-df.head()
-
 df = df[df['text'].str.match(r'^F L O *') == False]
-
 df = df.iloc[:, 1]
-df
 
+# Convert from dataframe to string
 bill_text = df.values.tolist()
 bill_text = ' '.join(bill_text)
 bill_text
 
+# Get rid of the junk
 def clean_text(string):
   string = string.lower()
   string = re.sub(r'[\d:,\.\(\)]', '', string)
@@ -50,6 +51,9 @@ def clean_text(string):
   return string
 
 cleaned = clean_text(bill_text)
+
+
+## TEXT SUMMARIZATION ##
 
 def summarize(text, per):
     nlp = spacy.load('en_core_web_sm')
@@ -84,12 +88,19 @@ def summarize(text, per):
 
 summarize(cleaned, 0.06)
 
+# Get rid of semicolons for rest of analysis
 cleaned = re.sub(r';', '', cleaned)
+
+
+## NAMED ENTITY RECOGNITION ##
 
 ner = spacy.load("en_core_web_sm")
 doc = ner(cleaned)
 
 displacy.render(doc, style="ent", jupyter=True)
+
+
+## UNIGRAM ANALYSIS ##
 
 stop = stopwords.words('english')
 
@@ -125,6 +136,9 @@ ax = sns.barplot(
     palette="mako"
 )
 ax.set_xticklabels(ax.get_xticklabels(), rotation=45)
+
+
+## BIGRAM ANALYSIS ##
 
 two_words = nltk.bigrams(word_lemmas)
 
